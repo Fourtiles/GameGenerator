@@ -1,0 +1,24 @@
+OVERVIEW: Finds Fourtile games and streams the output as JSON, for use in the Fourtile web game.
+
+This game attempts to find as many Fourtile games as possible. Games are
+streamed in JSON format to stdout or a file. Games are found using a randomized
+heuristic, so there is no guarantee that every possible game will be found. This
+is why games are streamed to stdout as they are found: Finding each next game
+becomes computationally more expensive as more randomizations are required.
+
+It is the intention that the user will abort this script when the time to find
+the next game becomes unreasonable, and the user is satisfied with the number
+of games found. The only required step is then to clean up the end of the JSON
+file.
+
+When writing games to a file, stdout is used to show a progress indicator, which
+is normalized to the theoretical maximum number of possible games.
+
+USAGE: game-generator --dictionary <dictionary> [--output <output>]
+
+OPTIONS:
+  -d, --dictionary <dictionary>
+                          The text file containing dictionary words.
+  -o, --output <output>   The JSON file to write game data to.
+  --version               Show the version.
+  -h, --help              Show help information.
