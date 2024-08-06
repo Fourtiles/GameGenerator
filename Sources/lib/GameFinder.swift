@@ -78,6 +78,7 @@ class GameFinder {
 
         let otherWords = await possibleOtherWords(inTiles: tiles)
         guard otherWords.count > Self.minWordsPerGame else { return nil }
+        guard otherWords.intersection(fourtiles).isEmpty else { return nil }
 
         return .init(tiles: tiles,
                      fourtiles: Set(fourtiles),
