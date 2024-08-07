@@ -2,12 +2,44 @@ import Foundation
 import Algorithms
 import Dispatch
 
+/**
+ Finds possible Fourtiles games by repeatedly generating random combinations of
+ fourtiles until a combination is found that meets all the requirements.
+
+ These requirements are:
+
+ - Exactly ``numFourtilesPerGame`` fourtiles are constructible.
+ - No words are constructible with more than ``numTilesPerFourtile`` tiles.
+ - Each word is constructible using only one combination of tiles.
+ - At least ``minWordsPerGame`` are constructible using between ``minTilesPerWord`` and ``numTilesPerFourtile`` tiles.
+
+ Fourtiles are defined as words constructible with ``numTilesPerFourtile``
+ tiles, with each tile having between ``minCharactersPerTile`` and
+ ``maxCharactersPerTile`` characters. All words with sufficient characters to
+ meet these criteria are candidate fourtiles.
+
+ Games are found asynchronously when ``findGames(showProgress:)`` is called, and
+ streamed to a given file handle in JSON format. The process can be interrupted
+ at any point, though you will have to add the closing `]` in the output JSON.
+ */
 class GameFinder {
+    
+    /// The minimum number of characters to use when splitting a word into tiles.
     static let minCharactersPerTile = 2
+    
+    /// The maximum number of characters to use when splitting a word into tiles.
     static let maxCharactersPerTile = 4
+    
+    /// The minimum number of tiles that can be used to build a word.
     static let minTilesPerWord = 2
-    static let numFourtilesPerGame = 5
+
+    /// The maximum number of tiles that can be used to build a word.
     static let numTilesPerFourtile = 4
+
+    /// The number of words, buildable with ``numTilesPerFourtile``, used to make a board.
+    static let numFourtilesPerGame = 5
+
+    /// The minimum number of total buildable words within a board.
     static let minWordsPerGame = 10
 
     private static var validWordLengths: ClosedRange<Int> {
@@ -31,14 +63,37 @@ class GameFinder {
         }
     }
 
-    let words: Words
-    let stream: FileHandle
+    private let words: Words
+    private let stream: FileHandle
 
+    /**
+     Creates a new GameFinder which streams found games to a file handle.
+
+     - Parameter words: The dictionary to use when finding games.
+     - Parameter stream: The file handle to stream found games in JSON format.
+     */
     init(words: Words, streamTo stream: FileHandle) {
         self.words = words
         self.stream = stream
     }
 
+    /**
+     Begins an asynchronous, stochastic process to find possible combinations
+     of fourtiles.
+
+     A stack of candidate fourtiles, pulled from the ``Words`` dictionary, is
+     shuffled, and then groups of ``numFourtilesPerGame`` fourtiles are popped
+     from the shuffled stack. Each group of words is then randomly split into
+     tiles to make a board. The board is evaluated according to the game
+     criteria, and streamed to the file handle if the board is valid. Otherwise,
+     the fourtiles are added back to the stack and the stack is re-shuffled.
+
+     This process will most likely never complete, as there will be remaining
+     fourtiles that cannot be arranged and split to produce a valid board.
+
+     - Parameter showProgress: If true, a progress bar is written to `stdout`.
+       Set this to false when streaming output to `stdout`.
+     */
     func findGames(showProgress: Bool = false) async throws {
         try stream.write(contentsOf: "[".data(using: .ascii)!)
 

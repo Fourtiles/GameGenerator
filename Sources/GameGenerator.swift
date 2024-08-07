@@ -1,6 +1,7 @@
 import Foundation
 import ArgumentParser
 
+/// Entry point for the command-line tool.
 @main
 struct GameGenerator: AsyncParsableCommand {
     static let configuration = CommandConfiguration(abstract: "Finds Fourtile games and streams the output as JSON, for use in the Fourtile web game.",
@@ -27,6 +28,7 @@ is normalized to the theoretical maximum number of possible games.
     @Option(name: .shortAndLong, help: "The JSON file to write game data to.", transform: { URL(fileURLWithPath: $0) })
     var output: URL? = nil
 
+    /// Entry point for the command line tool.
     mutating func run() async throws {
         let words = Words()
         try await words.load(from: dictionary)
