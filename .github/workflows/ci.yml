@@ -1,4 +1,4 @@
-name: CI
+name: Build
 
 on:
   push:
@@ -12,16 +12,16 @@ concurrency:
 
 jobs:
   tests:
-    name: Build and Test
+    name: Build
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        swift: ["5.10"]
-        os: [macos-14]
-    runs-on: ${{ matrix.os }}
+        os: [macos-14, macos-latest]
+        swift: ["6.0"]
     steps:
       - uses: actions/checkout@v4
-      - uses: swift-actions/setup-swift@v2
+      - uses: SwiftyLab/setup-swift@latest
         with:
           swift-version: ${{ matrix.swift }}
       - name: Build
