@@ -11,7 +11,8 @@ import Dispatch
  - Exactly ``numFourtilesPerGame`` fourtiles are constructible.
  - No words are constructible with more than ``numTilesPerFourtile`` tiles.
  - Each word is constructible using only one combination of tiles.
- - At least ``minWordsPerGame`` are constructible using between ``minTilesPerWord`` and ``numTilesPerFourtile`` tiles.
+ - At least ``minWordsPerGame`` are constructible using between
+   ``minTilesPerWord`` and ``numTilesPerFourtile`` tiles.
 
  Fourtiles are defined as words constructible with ``numTilesPerFourtile``
  tiles, with each tile having between ``minCharactersPerTile`` and
@@ -22,8 +23,8 @@ import Dispatch
  streamed to a given file handle in JSON format. The process can be interrupted
  at any point, though you will have to add the closing `]` in the output JSON.
  */
-class GameFinder {
-    
+actor GameFinder {
+
     /// The minimum number of characters to use when splitting a word into tiles.
     static let minCharactersPerTile = 2
     
