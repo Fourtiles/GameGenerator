@@ -39,8 +39,9 @@ struct GameGenerator: AsyncParsableCommand {
         let words = Words()
         try await words.load(from: dictionary)
 
-        if let output = output { FileManager.default.createFile(atPath: output.path(), contents: nil) }
+        if let output { FileManager.default.createFile(atPath: output.path(), contents: nil) }
         let outputStream = output == nil ? FileHandle.standardOutput : try FileHandle(forWritingTo: output!)
+        
         let signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
         signal(SIGINT, SIG_IGN) // Ignore default SIGINT behavior
         signalSource.setEventHandler {
