@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 /// Entry point for the command-line tool.
 @main
@@ -32,7 +32,7 @@ struct GameGenerator: AsyncParsableCommand {
     @Option(name: .shortAndLong,
             help: "The JSON file to write game data to.",
             transform: { URL(filePath: $0, directoryHint: .notDirectory) })
-    var output: URL? = nil
+    var output: URL?
 
     /// Entry point for the command line tool.
     mutating func run() async throws {
@@ -41,15 +41,17 @@ struct GameGenerator: AsyncParsableCommand {
 
         if let output { FileManager.default.createFile(atPath: output.path(), contents: nil) }
         let outputStream = output == nil ? FileHandle.standardOutput : try FileHandle(forWritingTo: output!)
-        
+
         let signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
         signal(SIGINT, SIG_IGN) // Ignore default SIGINT behavior
         signalSource.setEventHandler {
             // Flush the buffer when the script is aborted
+            // swiftlint:disable force_try
             try! outputStream.synchronize()
             try! outputStream.write(contentsOf: "]".data(using: .ascii)!)
             try! outputStream.close()
-            GameGenerator.exit()
+            // swiftlint:enable force_try
+            Self.exit()
         }
         signalSource.resume()
 

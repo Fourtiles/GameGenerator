@@ -22,7 +22,7 @@ let package = Package(
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "Progress", package: "Progress.swift")
             ]
-        ),
+        )
     ],
     swiftLanguageModes: [.v6]
 )

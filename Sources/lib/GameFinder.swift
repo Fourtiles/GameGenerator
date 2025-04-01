@@ -1,6 +1,6 @@
-import Foundation
 import Algorithms
 import Dispatch
+import Foundation
 
 /**
  Finds possible Fourtiles games by repeatedly generating random combinations of
@@ -27,10 +27,10 @@ actor GameFinder {
 
     /// The minimum number of characters to use when splitting a word into tiles.
     static let minCharactersPerTile = 2
-    
+
     /// The maximum number of characters to use when splitting a word into tiles.
     static let maxCharactersPerTile = 4
-    
+
     /// The minimum number of tiles that can be used to build a word.
     static let minTilesPerWord = 2
 
@@ -49,7 +49,7 @@ actor GameFinder {
         return minLength...maxLength
     }
 
-    private static var tileSizes: Dictionary<Int, Array<Int>> {
+    private static var tileSizes: [Int: [Int]] {
         validWordLengths.reduce(into: [:]) { dict, wordLength in
             dict[wordLength] = Array(repeating: minCharactersPerTile, count: numTilesPerFourtile)
             while dict[wordLength]!.reduce(0, +) < wordLength {
@@ -97,7 +97,7 @@ actor GameFinder {
 
         let fourtiles = await FourtileProvider(fourtiles: words.words.filter { Self.validWordLengths.contains($0.count) })
 
-        let fourtileCount = await fourtiles.count/Self.numFourtilesPerGame
+        let fourtileCount = await fourtiles.count / Self.numFourtilesPerGame
         let progress = showProgress ? ProgressActor(count: fourtileCount) : nil
 
         let encoder = JSONEncoder()
@@ -124,21 +124,21 @@ actor GameFinder {
         }
     }
 
-    private func findGame(forWords fourtiles: Array<String>) async -> Game? {
+    private func findGame(forWords fourtiles: [String]) async -> Game? {
         let tileSizes = fourtiles.map { Self.tileSizes[$0.count]!.shuffled() }
         guard let tiles = tilesFor(words: fourtiles, sizes: tileSizes) else { return nil }
         guard await possibleFourtiles(inTiles: tiles).count == Self.numFourtilesPerGame else { return nil }
 
         let otherWords = await possibleOtherWords(inTiles: tiles)
         guard otherWords.count > Self.minWordsPerGame else { return nil }
-        guard otherWords.intersection(fourtiles).isEmpty else { return nil }
+        guard otherWords.isDisjoint(with: fourtiles) else { return nil }
 
         return .init(tiles: tiles,
                      fourtiles: Set(fourtiles),
                      otherWords: otherWords)
     }
 
-    private func tilesFor(words: Array<String>, sizes: Array<Array<Int>>) -> Set<String>? {
+    private func tilesFor(words: [String], sizes: [[Int]]) -> Set<String>? {
         var tiles = Set<String>()
 
         for (i, word) in words.enumerated() {
@@ -170,7 +170,7 @@ actor GameFinder {
     }
 
     private actor FourtileProvider {
-        var fourtiles: Array<String>
+        var fourtiles: [String]
 
         var count: Int { fourtiles.count }
         var isEmpty: Bool { fourtiles.isEmpty}
@@ -180,14 +180,14 @@ actor GameFinder {
             self.fourtiles.shuffle()
         }
 
-        func pop(count n: Int) -> Array<String>? {
+        func pop(count n: Int) -> [String]? {
             guard fourtiles.count >= n else { return nil }
 
             defer { fourtiles.removeFirst(n) }
             return Array(fourtiles.prefix(n))
         }
 
-        func push(fourtiles: Array<String>) {
+        func push(fourtiles: [String]) {
             self.fourtiles.append(contentsOf: fourtiles)
             self.fourtiles.shuffle()
         }

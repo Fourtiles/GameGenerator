@@ -11,7 +11,7 @@ struct Game: Codable {
 
     /// All other words that can be formed by combinations of the tiles.
     let otherWords: Set<String>
-    
+
     /// The ``fourtiles`` and ``otherWords`` combined.
     var words: Set<String> {
         fourtiles.union(otherWords)

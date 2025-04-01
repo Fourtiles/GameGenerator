@@ -5,3 +5,7 @@ xcuserdata/
 DerivedData/
 .swiftpm
 .netrc
+
+
+# SwiftLint Remote Config Cache
+.swiftlint/RemoteConfigCache
