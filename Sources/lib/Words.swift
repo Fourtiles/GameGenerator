@@ -10,20 +10,18 @@ import Foundation
  */
 actor Words {
 
-    /// The words in the dictionary.
-    var words = Set<String>()
-    
-    /**
-     Loads words from a dictionary file. The file must be a normal text file,
-     newline-delimited.
+  /// The words in the dictionary.
+  var words = Set<String>()
 
-     - Parameter fileURL: The file to load words from.
-     */
-    func load(from fileURL: URL) throws {
-        let fileContents = try String(contentsOf: fileURL, encoding: .utf8)
-        
-        // Split the file into words and add to the set
-        let words = fileContents.components(separatedBy: .newlines).filter { !$0.isEmpty }
-        self.words.formUnion(words)
-    }
+  /// Loads words from a dictionary file. The file must be a normal text file,
+  /// newline-delimited.
+  ///
+  /// - Parameter fileURL: The file to load words from.
+  func load(from fileURL: URL) throws {
+    let fileContents = try String(contentsOf: fileURL, encoding: .utf8)
+
+    // Split the file into words and add to the set
+    let words = fileContents.components(separatedBy: .newlines).filter { !$0.isEmpty }
+    self.words.formUnion(words)
+  }
 }

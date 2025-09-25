@@ -1,11 +1,11 @@
 import Progress
 
 actor ProgressActor {
-    var bar: ProgressBar
+  var bar: ProgressBar
 
-    init(count: Int) {
-        bar = ProgressBar(count: count)
-    }
+  init(count: Int) {
+    bar = ProgressBar(count: count)
+  }
 
-    func next() { bar.next() }
+  func next() { bar.next() }
 }
