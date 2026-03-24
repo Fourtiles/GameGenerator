@@ -50,8 +50,7 @@ actor GameFinder {
   }
 
   private static var tileSizes: [Int: [Int]] {
-    validWordLengths.reduce([:]) { dict, wordLength in
-      var dict = dict
+    validWordLengths.reduce(into: [:]) { dict, wordLength in
       dict[wordLength] = Array(repeating: minCharactersPerTile, count: numTilesPerFourtile)
       while dict[wordLength]!.reduce(0, +) < wordLength {
         guard let index = dict[wordLength]!.firstIndex(where: { $0 < maxCharactersPerTile }) else {
@@ -59,8 +58,6 @@ actor GameFinder {
         }
         dict[wordLength]![index] += 1
       }
-
-      return dict
     }
   }
 

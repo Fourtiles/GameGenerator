@@ -7,3 +7,7 @@ DerivedData/
 .netrc
 .swiftlint
 .swift-format
+
+
+# SwiftLint Remote Config Cache
+.swiftlint/RemoteConfigCache
