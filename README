@@ -1,5 +1,10 @@
 OVERVIEW: Finds Fourtile games and streams the output as JSON, for use in the Fourtile web game.
 
+[![CI](https://github.com/Fourtiles/GameGenerator/actions/workflows/ci.yml/badge.svg)](https://github.com/Fourtiles/GameGenerator/actions/workflows/ci.yml)
+[![Swift 6.3+](https://img.shields.io/badge/Swift-6.3+-orange.svg)](https://swift.org)
+[![Platforms](https://img.shields.io/badge/Platforms-macOS-blue.svg)](https://swift.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
+
 This game attempts to find as many Fourtile games as possible. Games are
 streamed in JSON format to stdout or a file. Games are found using a randomized
 heuristic, so there is no guarantee that every possible game will be found. This
