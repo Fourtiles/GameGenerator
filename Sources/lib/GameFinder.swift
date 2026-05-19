@@ -177,7 +177,6 @@ actor GameFinder {
     var fourtiles: [String]
 
     var count: Int { fourtiles.count }
-    var isEmpty: Bool { fourtiles.isEmpty }
 
     init(fourtiles: Set<String>) {
       self.fourtiles = Array(fourtiles)
