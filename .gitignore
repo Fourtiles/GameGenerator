@@ -1,13 +1,15 @@
-.DS_Store
-/.build
+# Swift Package Manager
+.build/
 /Packages
+.swiftpm/
+
+# Xcode
 xcuserdata/
 DerivedData/
-.swiftpm
-.netrc
-.swiftlint
+
+# SwiftLint / swift-format
+.swiftlint/RemoteConfigCache
 .swift-format
 
-
-# SwiftLint Remote Config Cache
-.swiftlint/RemoteConfigCache
+# Misc
+.netrc
