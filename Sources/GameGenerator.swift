@@ -25,6 +25,8 @@ struct GameGenerator: AsyncParsableCommand {
     version: "1.0.0"
   )
 
+  private static let jsonArrayTerminator = Data("]".utf8)
+
   @Option(
     name: .shortAndLong,
     help: "The text file containing dictionary words.",
@@ -40,6 +42,21 @@ struct GameGenerator: AsyncParsableCommand {
   )
   var output: URL?
 
+  // Bridges SIGINT into an async stream that emits once per interrupt. There is
+  // no native Swift-concurrency signal API, so a DispatchSource signal source
+  // remains the underlying primitive; the default terminate-on-SIGINT behavior
+  // is suppressed so the search can shut down gracefully and leave well-formed
+  // JSON behind.
+  private static func interruptSignals() -> AsyncStream<Void> {
+    AsyncStream { continuation in
+      let source = DispatchSource.makeSignalSource(signal: SIGINT)
+      signal(SIGINT, SIG_IGN)
+      source.setEventHandler { continuation.yield() }
+      continuation.onTermination = { _ in source.cancel() }
+      source.resume()
+    }
+  }
+
   /// Entry point for the command line tool.
   mutating func run() async throws {
     let words = Words()
@@ -48,18 +65,29 @@ struct GameGenerator: AsyncParsableCommand {
     if let output { FileManager.default.createFile(atPath: output.path(), contents: nil) }
     let outputStream =
       output == nil ? FileHandle.standardOutput : try FileHandle(forWritingTo: output!)
-    let signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-    signal(SIGINT, SIG_IGN)  // Ignore default SIGINT behavior
-    signalSource.setEventHandler {
-      // Flush the buffer when the script is aborted
-      try? outputStream.synchronize()
-      try? outputStream.write(contentsOf: "]".data(using: .ascii)!)
-      try? outputStream.close()
-      Self.exit()
-    }
-    signalSource.resume()
 
     let gameFinder = GameFinder(words: words, streamTo: outputStream)
-    try await gameFinder.findGames(showProgress: output != nil)
+    try await search(with: gameFinder, showingProgress: output != nil)
+    finalize(outputStream)
+  }
+
+  // Runs the search alongside an interrupt watcher; the first to finish cancels
+  // the other. Cancelling the search lets in-flight games finish streaming
+  // before this returns, so the output is complete before it is closed.
+  private func search(with gameFinder: GameFinder, showingProgress showProgress: Bool) async throws
+  {
+    let interrupts = Self.interruptSignals()
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      group.addTask { try await gameFinder.findGames(showProgress: showProgress) }
+      group.addTask { for await _ in interrupts { return } }
+
+      for try await _ in group { group.cancelAll() }
+    }
+  }
+
+  private func finalize(_ stream: FileHandle) {
+    try? stream.synchronize()
+    try? stream.write(contentsOf: Self.jsonArrayTerminator)
+    try? stream.close()
   }
 }
