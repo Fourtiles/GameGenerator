@@ -1,5 +1,4 @@
 import Algorithms
-import Dispatch
 import Foundation
 
 /**
@@ -63,6 +62,7 @@ actor GameFinder {
 
   private let words: Words
   private let stream: FileHandle
+  private let encoder: JSONEncoder
 
   /// Creates a new GameFinder which streams found games to a file handle.
   ///
@@ -71,6 +71,10 @@ actor GameFinder {
   init(words: Words, streamTo stream: FileHandle) {
     self.words = words
     self.stream = stream
+
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+    self.encoder = encoder
   }
 
   /// Begins an asynchronous, stochastic process to find possible combinations
@@ -84,7 +88,9 @@ actor GameFinder {
   /// the fourtiles are added back to the stack and the stack is re-shuffled.
   ///
   /// This process will most likely never complete, as there will be remaining
-  /// fourtiles that cannot be arranged and split to produce a valid board.
+  /// fourtiles that cannot be arranged and split to produce a valid board. The
+  /// search therefore runs until the surrounding task is cancelled; cancellation
+  /// stops it once the games already in flight have finished streaming.
   ///
   /// - Parameter showProgress: If true, a progress bar is written to `stdout`.
   ///   Set this to false when streaming output to `stdout`.
@@ -98,20 +104,16 @@ actor GameFinder {
     let fourtileCount = await fourtiles.count / Self.numFourtilesPerGame
     let progress = showProgress ? ProgressActor(count: fourtileCount) : nil
 
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = .prettyPrinted
-
     while await fourtiles.count >= Self.numFourtilesPerGame {
+      if Task.isCancelled { return }
       try await withThrowingDiscardingTaskGroup { group in
         while let fourtilesForGame = await fourtiles.pop(count: Self.numFourtilesPerGame) {
+          if Task.isCancelled { break }
           group.addTask {
             guard fourtilesForGame.count == Self.numFourtilesPerGame else { return }
 
             if let game = await self.findGame(forWords: fourtilesForGame) {
-              try await MainActor.run {
-                try self.stream.write(contentsOf: encoder.encode(game))
-                try self.stream.write(contentsOf: ",\n".data(using: .ascii)!)
-              }
+              try await self.append(game)
               await progress?.next()
             } else {
               await fourtiles.push(fourtiles: fourtilesForGame)
@@ -120,6 +122,13 @@ actor GameFinder {
         }
       }
     }
+  }
+
+  // Running on the actor serializes the writes so the concurrent task-group
+  // children cannot interleave their JSON output.
+  private func append(_ game: Game) throws {
+    try stream.write(contentsOf: encoder.encode(game))
+    try stream.write(contentsOf: ",\n".data(using: .ascii)!)
   }
 
   private func findGame(forWords fourtiles: [String]) async -> Game? {
