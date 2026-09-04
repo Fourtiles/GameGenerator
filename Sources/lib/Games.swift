@@ -12,7 +12,7 @@ struct Game: Codable {
   /// All other words that can be formed by combinations of the tiles.
   let otherWords: Set<String>
 
-  func encode(to encoder: Encoder) throws {
+  func encode(to encoder: any Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
 
     try container.encode(tiles.shuffled(), forKey: .tiles)
